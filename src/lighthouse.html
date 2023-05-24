@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+    <title>Lighthouse Results</title>
+    <head>
+        <meta charset="utf-8" />
+        <title>Lighthouse</title>
+        <style>
+            body {
+                margin: 0px;
+                font-size: 0.9em;
+                font-family: sans-serif;
+            }
+            iframe {
+                display: block;
+                border: none;
+                height: 100vh;
+                width: 100vw;
+            }
+
+            #table-filter {
+                margin: 10px;
+            }
+
+            #scrollTop {
+                margin: 0 10px;
+            }
+
+            #lhTable {
+                border-collapse: collapse;
+                margin: 10px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            }
+            .hide,
+            #lhTable.hide-passed tbody > tr:not(.has-error) {
+                display: none;
+            }
+            #lhTable .lh-fail {
+                color: #a51515;
+            }
+            #lhTable .lh-pass {
+                color: #008000;
+            }
+            #lhTable thead tr {
+                background-color: #4c90e2;
+                color: #ffffff;
+                text-align: left;
+            }
+            #lhTable th,
+            #lhTable td {
+                padding: 12px 15px;
+            }
+            #lhTable tbody tr {
+                border-bottom: 1px solid #dddddd;
+            }
+            #lhTable tbody tr:nth-of-type(even) {
+                background-color: #f3f3f3;
+            }
+            #lhTable tbody tr:hover {
+                background-color: #b7d2f3;
+            }
+            #lhTable tfoot tr {
+                border-top: 2px solid #4c90e2;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="table-filter">
+            <label for="showPassed"><input type="checkbox" name="showPassed" id="showPassed" />Show passed?</label>
+        </div>
+
+        <table id="lhTable" class="hide-passed">
+            <thead></thead>
+            <tbody></tbody>
+            <tfoot></tfoot>
+        </table>
+
+        <button id="scrollTop" class="hide" aria-label="Scroll Top" title="Close Lighthouse report and scroll top">Scroll Top</button>
+
+        <iframe id="lh-iframe" height="100%" width="100%" frameborder="0" src="" title="Lighthouse report"></iframe>
+    </body>
+    <script type="text/javascript">
+        window.onbeforeunload = () => window.scrollTo(0, 0)
+
+        const results = [
+            // lighthouse-page-results
+        ]
+
+        let sortKey
+        if (results.length > 0 && results[0].scores && typeof results[0].scores[Object.keys(results[0].scores).sort()[0]] === 'number') {
+            sortKey = Object.keys(results[0].scores).sort()[0]
+        }
+        results.sort((a, b) => {
+            if (sortKey) {
+                return a.scores[sortKey] - b.scores[sortKey]
+            }
+            return b.error ? 1 : -1
+        })
+
+        const createTr = (data, cellType = 'td', isError = false) => {
+            const row = document.createElement('tr')
+            if (isError) {
+                row.classList.add('has-error')
+            }
+            data.forEach((el) => {
+                const cell = document.createElement(cellType)
+                cell.appendChild(el)
+                row.appendChild(cell)
+            })
+            return row
+        }
+
+        const lhTable = document.getElementById('lhTable')
+
+        // header data
+        const lhTableHeader = lhTable.getElementsByTagName('thead')[0]
+        const headers = ['Result', ...Object.keys(results[0].scores), 'Page'].map((t) => document.createTextNode(t))
+        lhTableHeader.appendChild(createTr(headers, 'th'))
+
+        // footer data
+        const lhTableFooter = lhTable.getElementsByTagName('tfoot')[0]
+        lhTableFooter.appendChild(
+            createTr(
+                ['TOTAL', '', `Failed ${results.filter((r) => r.error).length} of ${results.length}`].map((t) => document.createTextNode(t))
+            )
+        )
+
+        // body data
+        const lhTableBody = lhTable.getElementsByTagName('tbody')[0]
+        results.forEach((r) => {
+            const rowData = []
+
+            // Result
+            const resultText = document.createElement('span')
+            resultText.classList.add(r.error ? 'lh-fail' : 'lh-pass')
+            resultText.appendChild(document.createTextNode(r.error ? 'FAIL' : 'PASS'))
+            rowData.push(resultText)
+
+            // Scores
+            Object.entries(r.scores).forEach(([k, v]) => {
+                rowData.push(document.createTextNode(`${v} (${r.thresholds[k]})`))
+            })
+
+            // Page
+            if (r.addReportLink) {
+                const link = document.createElement('a')
+                link.href = r.href
+                link.appendChild(document.createTextNode(r.name))
+                rowData.push(link)
+            } else {
+                rowData.push(document.createTextNode(r.name))
+            }
+
+            // append row to body
+            lhTableBody.appendChild(createTr(rowData, 'td', !!r.error))
+        })
+
+        const iframe = document.getElementById('lh-iframe')
+        const scrollTopButton = document.getElementById('scrollTop')
+
+        // add click listener to open specific lighthouse report
+        lhTableBody.addEventListener('click', (e) => {
+            if (e.target && e.target.nodeName == 'A') {
+                iframe.src = e.target.href
+                iframe.scrollIntoView({ behavior: 'smooth' })
+                scrollTopButton.classList.remove('hide')
+            }
+            e.preventDefault()
+            e.stopPropagation()
+        })
+
+        // scroll top
+        scrollTopButton.addEventListener('click', (e) => {
+            window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+            iframe.src = ''
+            scrollTopButton.classList.add('hide')
+        })
+
+        // checkbox change listener to show/hide passed
+        document
+            .getElementById('table-filter')
+            .getElementsByTagName('input')[0]
+            .addEventListener('change', (e) => {
+                lhTable.classList.toggle('hide-passed')
+            })
+    </script>
+</html>
