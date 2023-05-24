@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    /* Generate types */
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+  },
+  "exclude": [
+    "vite.*.ts",
+    ".eslintrc.cjs"
+  ]
+}
