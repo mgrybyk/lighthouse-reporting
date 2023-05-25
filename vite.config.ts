@@ -20,7 +20,13 @@ export default defineConfig({
         emptyOutDir: true,
         minify: false,
         lib: {
-            entry: ['./src/index.ts', './src/hooks.ts', './src/lighthouseReports.ts', './src/lighthouseTest.ts'],
+            entry: [
+                './src/index.ts',
+                './src/hooks.ts',
+                './src/lighthouseReports.ts',
+                './src/playwrightLighthouseTest.ts',
+                './src/storybookPlaywright.ts',
+            ],
             formats: ['cjs', 'es'],
         },
         rollupOptions: {

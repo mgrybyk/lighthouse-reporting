@@ -5,7 +5,7 @@ import type { BrowserContext } from '@playwright/test'
 import { chromium, test as base } from '@playwright/test'
 import { PW_TMP_DIR } from './constants'
 
-export const lighthouseTest = base.extend<{ context: BrowserContext }, { port: number }>({
+export const playwrightLighthouseTest = base.extend<{ context: BrowserContext }, { port: number }>({
     port: [
         // eslint-disable-next-line no-empty-pattern
         async ({}, use) => {
