@@ -7,6 +7,7 @@ export const globals = {
     url: 'url',
     'fs-extra': 'fse',
 }
+// get-port is not included because it cannot be imported in umd mode due to its package type module.
 export const external = ['path', 'os', 'net', 'url', 'fs-extra', '@playwright/test']
 export const alias = {
     'node:net': 'net',
