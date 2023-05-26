@@ -1,5 +1,5 @@
 import fse from 'fs-extra'
-import { BrowserContext, expect } from '@playwright/test'
+import { BrowserContext, Locator, Page, expect } from '@playwright/test'
 
 interface StorybookIndexJSON {
     v: number
@@ -75,7 +75,59 @@ export const storybookPlaywright = {
                  */
                 height: number
             }
-        }
+
+            /**
+             * When true, takes a screenshot of the full scrollable page, instead of the currently visible viewport. Defaults to
+             * `false`.
+             */
+            fullPage?: boolean
+
+            /**
+             * Specify locators that should be masked when the screenshot is taken. Masked elements will be overlaid with a pink
+             * box `#FF00FF` that completely covers its bounding box.
+             */
+            mask?: Array<Locator>
+
+            /**
+             * An acceptable ratio of pixels that are different to the total amount of pixels, between `0` and `1`. Default is
+             * configurable with `TestConfig.expect`. Unset by default.
+             */
+            maxDiffPixelRatio?: number
+
+            /**
+             * An acceptable amount of pixels that could be different. Default is configurable with `TestConfig.expect`. Unset by
+             * default.
+             */
+            maxDiffPixels?: number
+
+            /**
+             * Hides default white background and allows capturing screenshots with transparency. Not applicable to `jpeg` images.
+             * Defaults to `false`.
+             */
+            omitBackground?: boolean
+
+            /**
+             * When set to `"css"`, screenshot will have a single pixel per each css pixel on the page. For high-dpi devices, this
+             * will keep screenshots small. Using `"device"` option will produce a single pixel per each device pixel, so
+             * screenshots of high-dpi devices will be twice as large or even larger.
+             *
+             * Defaults to `"css"`.
+             */
+            scale?: 'css' | 'device'
+
+            /**
+             * An acceptable perceived color difference in the [YIQ color space](https://en.wikipedia.org/wiki/YIQ) between the
+             * same pixel in compared images, between zero (strict) and one (lax), default is configurable with
+             * `TestConfig.expect`. Defaults to `0.2`.
+             */
+            threshold?: number
+
+            /**
+             * Time to retry the assertion for. Defaults to `timeout` in `TestConfig.expect`.
+             */
+            timeout?: number
+        },
+        actionBeforeScreenshot?: (page: Page) => Promise<void>
     ) => {
         const page = context.pages()[0]
 
@@ -83,6 +135,9 @@ export const storybookPlaywright = {
         await expect(page.locator('.sb-show-main')).toBeVisible()
         await expect(page.locator('.sb-show-errordisplay')).not.toBeVisible()
         await page.waitForLoadState('networkidle')
+        if (actionBeforeScreenshot) {
+            await actionBeforeScreenshot(page)
+        }
         await expect(page).toHaveScreenshot(`${story.id}.png`, screenshotOptions)
     },
 }
