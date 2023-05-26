@@ -4,8 +4,11 @@
 
 The reports include trend history support, allowing you to track performance improvements over time.
 
-![html_report](./docs/html_report.png)
-![plot_report](./docs/plot_report.png)
+<p align="center">
+  <img alt="HTML" src="./docs/html_report.png" width="45%">
+&nbsp; &nbsp; &nbsp; &nbsp;
+  <img alt="Plot" src="./docs/plot_report.png" width="45%">
+</p>
 
 ## Usage
 
