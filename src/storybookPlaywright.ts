@@ -36,10 +36,11 @@ export interface StorybookStoriesStory {
     }
 }
 
-type StoriesFilterFn = <V7 = true>(story: V7 extends true ? StorybookIndexStory : StorybookStoriesStory) => boolean
-
 export const storybookPlaywright = {
-    getStories: (pathToStorybookIndexJson: string, storyFilterFn: StoriesFilterFn) => {
+    getStories: <V7 = true>(
+        pathToStorybookIndexJson: string,
+        storyFilterFn: (story: V7 extends true ? StorybookIndexStory : StorybookStoriesStory) => boolean
+    ) => {
         if (!fse.existsSync(pathToStorybookIndexJson)) {
             console.log(pathToStorybookIndexJson, "doesn't exist.")
             throw new Error('Please build storybook before running tests!')
@@ -48,6 +49,8 @@ export const storybookPlaywright = {
 
         const storyObject = storybookIndexJson.entries || storybookIndexJson.stories
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         const stories = Object.values(storyObject).filter(storyFilterFn)
 
         return stories
