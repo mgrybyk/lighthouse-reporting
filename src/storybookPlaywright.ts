@@ -4,8 +4,12 @@ import { BrowserContext, Locator, Page, expect } from '@playwright/test'
 interface StorybookIndexJSON {
     v: number
     entries: Record<string, StorybookIndexStory>
+    stories: Record<string, StorybookStoriesStory>
 }
 
+/**
+ * Storybook v7
+ */
 export interface StorybookIndexStory {
     id: string // composite-typography--variants
     title: string // Composite/Typography
@@ -15,7 +19,24 @@ export interface StorybookIndexStory {
     type: 'story' | 'docs'
 }
 
-type StoriesFilterFn = (story: StorybookIndexStory) => boolean
+/**
+ * Storybook v6
+ */
+export interface StorybookStoriesStory {
+    id: string // composite-typography--variants
+    title: string // Composite/Typography
+    name: string // Variants
+    importPath: string // ./components/Typography/Typography.stories.tsx
+    kind: string
+    story: string
+    parameters: {
+        __id: string
+        docsOnly: boolean
+        fileName: string
+    }
+}
+
+type StoriesFilterFn = <V7 = true>(story: V7 extends true ? StorybookIndexStory : StorybookStoriesStory) => boolean
 
 export const storybookPlaywright = {
     getStories: (pathToStorybookIndexJson: string, storyFilterFn: StoriesFilterFn) => {
@@ -25,7 +46,9 @@ export const storybookPlaywright = {
         }
         const storybookIndexJson: StorybookIndexJSON = fse.readJsonSync(pathToStorybookIndexJson)
 
-        const stories = Object.values(storybookIndexJson.entries).filter(storyFilterFn)
+        const storyObject = storybookIndexJson.entries || storybookIndexJson.stories
+
+        const stories = Object.values(storyObject).filter(storyFilterFn)
 
         return stories
     },

@@ -141,11 +141,17 @@ export const writeScoresToJson = async (lhScoresDir: string, name: string, score
 }
 
 /**
- * Generate average csv file. Make sure to use writeScoresToJson in your test!
+ * Generate average csv file. Make sure to use `writeScoresToJson` in your test!
+ * @param lhScoresDir path to folder with lighthouse json files. See `writeScoresToJson`.
+ * @param reportDir folder where `_AVERAGE_.json` will be generated
  */
-export const buildAverageCsv = async (lhScoresDir: string) => {
+export const buildAverageCsv = async (lhScoresDir: string, reportDir: string) => {
     const files = await fse.readdir(lhScoresDir)
     const jsonFiles = files.filter((f) => f.endsWith('.json'))
+
+    if (jsonFiles.length === 0) {
+        return
+    }
 
     // sum all the scores
     const scores: Record<string, number> = {}
@@ -166,5 +172,5 @@ export const buildAverageCsv = async (lhScoresDir: string) => {
         scores[k] = v / jsonFiles.length
     })
 
-    await writeCsvResult(lhScoresDir, '_AVERAGE_', scores)
+    await writeCsvResult(reportDir, '_AVERAGE_', scores)
 }

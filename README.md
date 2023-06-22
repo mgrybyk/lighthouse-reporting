@@ -100,6 +100,8 @@ const lhScoresDir = path.join(process.cwd(), process.env.LH_SCORES_DIR || 'lh-sc
 const reportDir = path.join(process.cwd(), process.env.LH_REPORT_DIR || 'lighthouse')
 const htmlFilePath = path.join(reportDir, 'index.html')
 
+// use stories.json instead of index.json for storybook v6
+// make sure to set buildStoriesJson to true in storybook main.js feature section
 const stories = storybookPlaywright.getStories('./storybook-static/index.json', (story) => {
     // skip docs, etc
     if (story.type !== 'story') {
@@ -233,10 +235,11 @@ export default globalSetup
 import { lighthousePlaywrightTeardown, buildAverageCsv } from 'lighthouse-reporting'
 
 const lhScoresDir = path.join(process.cwd(), process.env.LH_SCORES_DIR || 'lh-scores')
+const reportDir = path.join(process.cwd(), 'lighthouse')
 
 async function globalTeardown() {
     await lighthousePlaywrightTeardown()
-    await buildAverageCsv(lhScoresDir)
+    await buildAverageCsv(lhScoresDir, reportDir)
 }
 
 export default globalTeardown
