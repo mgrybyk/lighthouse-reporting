@@ -92,10 +92,12 @@ import {
     LighthouseResult,
     StorybookIndexStory,
     storybookPlaywright,
+    writeScoresToJson
 } from 'lighthouse-reporting'
 
 playwrightLighthouseTest.setTimeout(60000)
-const reportDir = path.join(process.cwd(), process.env.LH_REPORT_DIR as string)
+const lhScoresDir = path.join(process.cwd(), process.env.LH_SCORES_DIR || 'lh-scores')
+const reportDir = path.join(process.cwd(), process.env.LH_REPORT_DIR || 'lighthouse')
 const htmlFilePath = path.join(reportDir, 'index.html')
 
 const stories = storybookPlaywright.getStories('./storybook-static/index.json', (story) => {
@@ -147,6 +149,8 @@ const runLighthouse = async (story: StorybookIndexStory, context: BrowserContext
     const scores = getScores(result)
     await writeCsvResult(reportDir, name, scores, thresholds)
     await writeHtmlListEntryWithRetry(htmlFilePath, name, scores, thresholds, result.comparisonError)
+    // write score results in JSON, allows generating the Average csv report
+    await writeScoresToJson(lhScoresDir, name, scores, result)
 }
 ```
 
@@ -162,6 +166,8 @@ import { PlaywrightTestConfig } from '@playwright/test'
 
 const baseURL = 'http://127.0.0.1:6009'
 // process.env.LH_REPORT_DIR = 'lighthouse-storybook' // adjust lighthouse output folder if required
+// process.env.LH_SCORES_DIR = 'lh-scores' // to write and store scores in json format or write average report
+
 
 const config: PlaywrightTestConfig = {
     use: {
@@ -209,49 +215,13 @@ export default config
   <summary>global-setup.ts</summary>
 
 ```ts
-import { PlaywrightTestConfig } from '@playwright/test'
+import { lighthouseSetup } from 'lighthouse-reporting'
 
-const baseURL = 'http://127.0.0.1:6009'
-// process.env.LH_REPORT_DIR = 'lighthouse-storybook' // adjust lighthouse output folder if required
-
-const config: PlaywrightTestConfig = {
-    use: {
-        viewport: { width: 1280, height: 820 },
-        ignoreHTTPSErrors: true,
-        acceptDownloads: false,
-        trace: 'off',
-        baseURL,
-        screenshot: { mode: 'off' },
-    },
-    projects: [
-        {
-            name: 'chromium',
-            use: {
-                browserName: 'chromium',
-                launchOptions: { args: ['--disable-gpu'] },
-            },
-            retries: 0,
-        },
-    ],
-    expect: { toMatchSnapshot: { threshold: 0.2 } },
-    reporter: 'line',
-    testDir: 'test/storybook',
-    testMatch: '*.spec.ts',
-    fullyParallel: true,
-    globalSetup: './src/global-setup.ts',
-    globalTeardown: './src/global-teardown.ts',
-    forbidOnly: true,
-    webServer: [
-        {
-            command: 'npx http-server ./storybook-static --port 6009 --silent',
-            url: `${baseURL}/index.json`,
-            timeout: 15 * 1000,
-            reuseExistingServer: false,
-            ignoreHTTPSErrors: true,
-        },
-    ],
+async function globalSetup() {
+    await lighthouseSetup()
 }
-export default config
+
+export default globalSetup
 ```
 
 </details>
@@ -260,10 +230,13 @@ export default config
   <summary>global-teardown.ts</summary>
 
 ```ts
-import { lighthousePlaywrightTeardown } from 'lighthouse-reporting'
+import { lighthousePlaywrightTeardown, buildAverageCsv } from 'lighthouse-reporting'
+
+const lhScoresDir = path.join(process.cwd(), process.env.LH_SCORES_DIR || 'lh-scores')
 
 async function globalTeardown() {
     await lighthousePlaywrightTeardown()
+    await buildAverageCsv(lhScoresDir)
 }
 
 export default globalTeardown

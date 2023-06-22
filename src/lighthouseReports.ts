@@ -140,6 +140,9 @@ export const writeScoresToJson = async (lhScoresDir: string, name: string, score
     await fse.writeFile(path.join(lhScoresDir, `${name}.json`), JSON.stringify(json, null, 2))
 }
 
+/**
+ * Generate average csv file. Make sure to use writeScoresToJson in your test!
+ */
 export const buildAverageCsv = async (lhScoresDir: string) => {
     const files = await fse.readdir(lhScoresDir)
     const jsonFiles = files.filter((f) => f.endsWith('.json'))
