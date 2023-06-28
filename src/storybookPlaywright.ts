@@ -153,6 +153,9 @@ export const storybookPlaywright = {
              */
             timeout?: number
         },
+        options = {
+            waitForLoadStateTimeout: 2000,
+        },
         actionBeforeScreenshot?: (page: Page) => Promise<void>
     ) => {
         const page = context.pages()[0]
@@ -160,7 +163,11 @@ export const storybookPlaywright = {
         await page.goto(`/iframe.html?id=${story.id}`)
         await expect(page.locator('.sb-show-main')).toBeVisible()
         await expect(page.locator('.sb-show-errordisplay')).not.toBeVisible()
-        await page.waitForLoadState('networkidle')
+        try {
+            await page.waitForLoadState('networkidle', { timeout: options.waitForLoadStateTimeout })
+        } catch {
+            // ignored
+        }
         if (actionBeforeScreenshot) {
             await actionBeforeScreenshot(page)
         }
