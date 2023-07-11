@@ -117,16 +117,22 @@ export const writeHtmlListEntryWithRetry = async (
 }
 
 export const getScores = (result: LighthouseResult) =>
-    Object.entries(result.lhr.categories).reduce((prev, [key, c]) => {
-        prev[key] = Math.floor(c.score * 100)
-        return prev
-    }, {} as Record<string, number>)
+    Object.entries(result.lhr.categories).reduce(
+        (prev, [key, c]) => {
+            prev[key] = Math.floor(c.score * 100)
+            return prev
+        },
+        {} as Record<string, number>
+    )
 
 export const writeScoresToJson = async (lhScoresDir: string, name: string, scores: Record<string, number>, result: LighthouseResult) => {
-    const json = Object.entries(scores).reduce((prev, [k, score]) => {
-        prev[k] = { score }
-        return prev
-    }, {} as Record<string, { score: number; issues?: AccessibilityViolations[] }>)
+    const json = Object.entries(scores).reduce(
+        (prev, [k, score]) => {
+            prev[k] = { score }
+            return prev
+        },
+        {} as Record<string, { score: number; issues?: AccessibilityViolations[] }>
+    )
     const accessibilityViolations: AccessibilityViolations[] = result.artifacts.Accessibility.violations.map((v) => {
         return {
             title: result.lhr.audits[v.id].title,
