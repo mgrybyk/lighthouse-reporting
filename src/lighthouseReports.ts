@@ -42,7 +42,7 @@ export interface LighthouseResult {
         }
     }
     artifacts: {
-        Accessibility: {
+        Accessibility?: {
             violations: Array<AxeRuleResult>
         }
     }
@@ -133,12 +133,14 @@ export const writeScoresToJson = async (lhScoresDir: string, name: string, score
         },
         {} as Record<string, { score: number; issues?: AccessibilityViolations[] }>
     )
-    const accessibilityViolations: AccessibilityViolations[] = result.artifacts.Accessibility.violations.map((v) => {
-        return {
-            title: result.lhr.audits[v.id].title,
-            nodes: v.nodes.length,
-        }
-    })
+    const accessibilityViolations: AccessibilityViolations[] = result.artifacts.Accessibility
+        ? result.artifacts.Accessibility.violations.map((v) => {
+              return {
+                  title: result.lhr.audits[v.id].title,
+                  nodes: v.nodes.length,
+              }
+          })
+        : []
     if (accessibilityViolations.length > 0) {
         json.accessibility.issues = accessibilityViolations
     }
