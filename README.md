@@ -14,6 +14,8 @@ The reports include trend history support, allowing you to track performance imp
 
 Examples of usage with Playwright + Lighthouse (and Storybook).
 
+`npm i -D lighthouse playwright-lighthouse lighthouse-reporting`
+
 ### In your frontend or testing framework
 The example of usage [playwright](https://github.com/microsoft/playwright) and [playwright-lighthouse](https://github.com/abhinaba-ghosh/playwright-lighthouse) together.
 
@@ -38,8 +40,12 @@ const lighthousePages = [
 ]
 
 lighthousePages.forEach(({ name, po, thresholds, swimlanes }) => {
-    playwrightLighthouseTest(name, async ({ port, baseURL }) => {
+    playwrightLighthouseTest(name, async ({ context, port, baseURL }) => {
         const onlyCategories = ['accessibility', 'seo', 'performance']
+
+        // make sure to acess context or page at least once
+        // to let playwright initialize context!
+        context // this is enough to make the test work
 
         const result: LighthouseResult = await playAudit({
             url: baseURL + po.getPath('123'),
@@ -97,8 +103,9 @@ import {
 
 playwrightLighthouseTest.setTimeout(60000)
 const lhScoresDir = path.join(process.cwd(), process.env.LH_SCORES_DIR || 'lh-scores')
-const reportDir = path.join(process.cwd(), process.env.LH_REPORT_DIR || 'lighthouse')
-const htmlFilePath = path.join(reportDir, 'index.html')
+const csvReportDir = path.join(process.cwd(), process.env.LH_CSV_REPORT_DIR || 'lighthouse')
+const htmlReportDir = path.join(process.cwd(), process.env.LH_REPORT_DIR || 'lighthouse')
+const htmlFilePath = path.join(htmlReportDir, 'index.html')
 
 // use stories.json instead of index.json for storybook v6
 // make sure to set buildStoriesJson to true in storybook main.js feature section
@@ -126,11 +133,16 @@ const runLighthouse = async (story: StorybookIndexStory, context: BrowserContext
     const thresholds = { accessibility: 100 }
     const name = story.id
 
-    const page = context.pages()[0]
-    await page.goto(`/iframe.html?id=${story.id}`)
+    // make sure to acess context or page at least once
+    // to let playwright initialize context!
+    context // this is enough to make the test work
+    // or manually open the page
+    // const page = context.pages()[0]
+    // await page.goto(`/iframe.html?id=${story.id}`)
 
     const result: LighthouseResult = await playAudit({
         url: baseURL + `/iframe.html?id=${story.id}`,
+        // page, // alternatevely, path the page instead of the `url`
         port,
         thresholds,
         reports: {
@@ -138,7 +150,7 @@ const runLighthouse = async (story: StorybookIndexStory, context: BrowserContext
                 html: true,
             },
             name,
-            directory: reportDir,
+            directory: htmlReportDir,
         },
         opts: {
             onlyCategories,
@@ -149,7 +161,7 @@ const runLighthouse = async (story: StorybookIndexStory, context: BrowserContext
     })
 
     const scores = getScores(result)
-    await writeCsvResult(reportDir, name, scores, thresholds)
+    await writeCsvResult(csvReportDir, name, scores, thresholds)
     await writeHtmlListEntryWithRetry(htmlFilePath, name, scores, thresholds, result.comparisonError)
     // write score results in JSON, allows generating the Average csv report
     await writeScoresToJson(lhScoresDir, name, scores, result)
@@ -167,7 +179,8 @@ const runLighthouse = async (story: StorybookIndexStory, context: BrowserContext
 import { PlaywrightTestConfig } from '@playwright/test'
 
 const baseURL = 'http://127.0.0.1:6009'
-// process.env.LH_REPORT_DIR = 'lighthouse-storybook' // adjust lighthouse output folder if required
+// process.env.LH_REPORT_DIR = 'lighthouse-html' // adjust lighthouse output folder if required
+// process.env.LH_CSV_REPORT_DIR = 'lighthouse-csv' // adjust lighthouse csv report folder if required
 // process.env.LH_SCORES_DIR = 'lh-scores' // to write and store scores in json format or write average report
 
 
@@ -217,9 +230,16 @@ export default config
   <summary>global-setup.ts</summary>
 
 ```ts
+import path from 'path'
+import fs from 'fs/promises'
 import { lighthouseSetup } from 'lighthouse-reporting'
 
+const lhScoresDir = path.join(process.cwd(), process.env.LH_SCORES_DIR || 'lh-scores')
+const csvReportDir = path.join(process.cwd(), process.env.LH_CSV_REPORT_DIR || 'lighthouse')
+
 async function globalSetup() {
+    await fs.mkdir(lhScoresDir, { recursive: true })
+    await fs.mkdir(csvReportDir, { recursive: true })
     await lighthouseSetup()
 }
 
@@ -232,14 +252,15 @@ export default globalSetup
   <summary>global-teardown.ts</summary>
 
 ```ts
+import path from 'path'
 import { lighthousePlaywrightTeardown, buildAverageCsv } from 'lighthouse-reporting'
 
 const lhScoresDir = path.join(process.cwd(), process.env.LH_SCORES_DIR || 'lh-scores')
-const reportDir = path.join(process.cwd(), 'lighthouse')
+const csvReportDir = path.join(process.cwd(), process.env.LH_CSV_REPORT_DIR || 'lighthouse')
 
 async function globalTeardown() {
     await lighthousePlaywrightTeardown()
-    await buildAverageCsv(lhScoresDir, reportDir)
+    await buildAverageCsv(lhScoresDir, csvReportDir)
 }
 
 export default globalTeardown
