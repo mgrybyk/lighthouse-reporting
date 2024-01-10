@@ -47,7 +47,7 @@ lighthousePages.forEach(({ name, po, thresholds, swimlanes }) => {
         // to let playwright initialize context!
         context // this is enough to make the test work
 
-        // note: importing LighthouseResult is not needed since playwright-lighthouse release after v3.2.5 (not including)
+        // note: importing LighthouseResult is not needed since playwright-lighthouse@3.2.6
         const result: LighthouseResult = await playAudit({
             url: baseURL + po.getPath('123'),
             port,
@@ -141,7 +141,7 @@ const runLighthouse = async (story: StorybookIndexStory, context: BrowserContext
     // const page = context.pages()[0]
     // await page.goto(`/iframe.html?id=${story.id}`)
 
-    // note: importing LighthouseResult is not needed since playwright-lighthouse release after v3.2.5 (not including)
+    // note: importing LighthouseResult is not needed since playwright-lighthouse@3.2.6
     const result: LighthouseResult = await playAudit({
         url: baseURL + `/iframe.html?id=${story.id}`,
         // page, // alternatevely, path the page instead of the `url`
