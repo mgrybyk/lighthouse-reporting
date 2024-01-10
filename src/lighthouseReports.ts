@@ -5,7 +5,7 @@ interface NodeDetails {
     lhId: string
     devtoolsNodePath: string
     selector: string
-    boudingRect: { [k: string]: number }
+    boundingRect: unknown
     snippet: string
     nodeLabel: string
 }
@@ -32,7 +32,7 @@ export interface LighthouseResult {
     lhr: {
         categories: {
             [k: string]: {
-                score: number
+                score: number | null
             }
         }
         audits: {
@@ -117,13 +117,15 @@ export const writeHtmlListEntryWithRetry = async (
 }
 
 export const getScores = (result: LighthouseResult) =>
-    Object.entries(result.lhr.categories).reduce(
-        (prev, [key, c]) => {
-            prev[key] = Math.floor(c.score * 100)
-            return prev
-        },
-        {} as Record<string, number>
-    )
+    Object.entries(result.lhr.categories)
+        .filter((c) => typeof c[1].score === 'number')
+        .reduce(
+            (prev, [key, c]) => {
+                prev[key] = Math.floor((c.score as number) * 100)
+                return prev
+            },
+            {} as Record<string, number>
+        )
 
 export const writeScoresToJson = async (lhScoresDir: string, name: string, scores: Record<string, number>, result: LighthouseResult) => {
     const json = Object.entries(scores).reduce(
