@@ -20,8 +20,8 @@ interface AxeRuleResult {
     impact?: string
     tags: Array<string>
     nodes: Array<{
-        target: Array<string>
-        failureSummary?: string
+        target: Array<unknown> // string | string[]
+        failureSummary?: unknown // string
         node: NodeDetails
         relatedNodes: NodeDetails[]
     }>
