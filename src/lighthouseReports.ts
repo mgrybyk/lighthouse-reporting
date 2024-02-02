@@ -117,15 +117,15 @@ export const writeHtmlListEntryWithRetry = async (
 }
 
 export const getScores = (result: LighthouseResult) =>
-    Object.entries(result.lhr.categories)
-        .filter((c) => typeof c[1].score === 'number')
-        .reduce(
-            (prev, [key, c]) => {
-                prev[key] = Math.floor((c.score as number) * 100)
-                return prev
-            },
-            {} as Record<string, number>
-        )
+    Object.entries(result.lhr.categories).reduce(
+        (prev, [key, c]) => {
+            // set score to 0 if it's null
+            const score = typeof c.score === 'number' ? c.score : 0
+            prev[key] = Math.floor(score * 100)
+            return prev
+        },
+        {} as Record<string, number>
+    )
 
 export const writeScoresToJson = async (lhScoresDir: string, name: string, scores: Record<string, number>, result: LighthouseResult) => {
     const json = Object.entries(scores).reduce(
