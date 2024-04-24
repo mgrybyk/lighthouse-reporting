@@ -321,4 +321,4 @@ stage('Lighthouse') {
 
 ## GitHub Actions
 
-TODO
+See example https://github.com/mgrybyk/html-trend-report-action
