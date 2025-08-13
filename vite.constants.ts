@@ -6,6 +6,7 @@ export const globals = {
     os: 'os',
     url: 'url',
     'fs-extra': 'fse',
+    '@playwright/test': '@playwright/test',
 }
 // get-port is not included because it cannot be imported in umd mode due to its package type module.
 export const external = ['path', 'os', 'net', 'url', 'fs-extra', '@playwright/test']

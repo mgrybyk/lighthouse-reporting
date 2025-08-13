@@ -21,7 +21,7 @@
   "include": [
     "src",
     "vite.*.ts",
-    ".eslintrc.cjs"
+    "eslint.config.js"
   ],
   "exclude": [
     "src/index.d.ts"
