@@ -9,6 +9,7 @@ export default defineConfig({
                 {
                     src: 'src/lighthouse.html',
                     dest: '',
+                    rename: { stripBase: 1 },
                 },
             ],
         }),
