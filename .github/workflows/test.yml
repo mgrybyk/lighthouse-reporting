@@ -10,11 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v5
         with:
-          node-version: "lts/*"
+          node-version: '24'
+          cache: 'npm'
       - run: npm ci
       - run: npm run precommit
       - run: npm run build
